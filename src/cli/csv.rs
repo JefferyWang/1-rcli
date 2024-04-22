@@ -5,7 +5,7 @@ use std::{
 
 use clap::Parser;
 
-use super::verify_input_file;
+use super::verify_file;
 
 #[derive(Debug, Clone, Copy)]
 pub enum OutputFormat {
@@ -15,7 +15,7 @@ pub enum OutputFormat {
 
 #[derive(Debug, Parser)]
 pub struct CsvOpts {
-    #[arg(short, long, value_parser = verify_input_file, help = "输入 CSV 文件")]
+    #[arg(short, long, value_parser = verify_file, help = "输入 CSV 文件")]
     pub input: String,
 
     #[arg(short, long, help = "输出文件")]
