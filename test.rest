@@ -1,2 +1,10 @@
-### test index
+### test static file
 GET http://localhost:8080/Cargo.toml
+
+### test static file with tower-http
+GET http://localhost:8080/tower/Cargo.toml
+Accept-Encoding: gzip
+Range: bytes=0-100
+
+### test static file with tower-http
+GET http://localhost:8080/tower/fixtures/blake3.txt
