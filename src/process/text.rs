@@ -2,6 +2,10 @@ use std::{fs, io::Read, path::Path};
 
 use anyhow::Result;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use chacha20poly1305::{
+    aead::{Aead, AeadCore, KeyInit},
+    ChaCha20Poly1305, Nonce,
+};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand::rngs::OsRng;
 
@@ -86,6 +90,25 @@ pub fn process_text_generate(format: TextSignFormat) -> Result<Vec<Vec<u8>>> {
         TextSignFormat::Ed25519 => Ed25519Signer::generate()?,
     };
     Ok(keys)
+}
+
+pub fn process_text_encrypt(input: &str, key: &str) -> Result<String> {
+    let cipher = ChaCha20Poly1305::new_from_slice(key.as_bytes())?;
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+
+    let ciphertext = cipher.encrypt(&nonce, input.as_bytes())?;
+    let data = Vec::from(&nonce[..]);
+    let data = [&data[..], &ciphertext].concat();
+    Ok(URL_SAFE_NO_PAD.encode(data))
+}
+
+pub fn process_text_decrypt(input: &str, key: &str) -> Result<String> {
+    let cipher = ChaCha20Poly1305::new_from_slice(key.as_bytes())?;
+    let data = URL_SAFE_NO_PAD.decode(input)?;
+
+    let nonce = Nonce::from_slice(&data[..12]);
+    let decrypted = cipher.decrypt(nonce, &data[12..])?;
+    Ok(String::from_utf8(decrypted)?)
 }
 
 impl TextSign for Blake3 {
@@ -230,6 +253,16 @@ mod tests {
         let sig = sk.sign(&mut &data[..])?;
         println!("{:?}", sig);
         assert!(pk.verify(&data[..], &sig)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_chacha20poly1305_encrypt_decrypt() -> Result<()> {
+        let key = process_genpass(32, true, true, true, true)?;
+        let data = "hello world!";
+        let encrypted = process_text_encrypt(data, &key)?;
+        let decrypted = process_text_decrypt(&encrypted, &key)?;
+        assert_eq!(data, decrypted);
         Ok(())
     }
 }

@@ -8,7 +8,10 @@ use clap::Parser;
 use enum_dispatch::enum_dispatch;
 use tokio::fs;
 
-use crate::{process_text_generate, process_text_sign, process_text_verify, CmdExector};
+use crate::{
+    process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
+    process_text_verify, CmdExector,
+};
 
 use super::{verify_file, verify_path};
 
@@ -23,6 +26,12 @@ pub enum TextSubCommand {
 
     #[command(name = "generate", about = "Generate a key")]
     Generate(TextKeyGenerateOpts),
+
+    #[command(name = "encrypt", about = "Encrypt a message")]
+    Encrypt(EncryptOpts),
+
+    #[command(name = "decrypt", about = "Decrypt a message")]
+    Decrypt(DecryptOpts),
 }
 
 impl CmdExector for TextSignOpts {
@@ -129,5 +138,39 @@ impl From<TextSignFormat> for &'static str {
 impl Display for TextSignFormat {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", Into::<&'static str>::into(*self))
+    }
+}
+
+#[derive(Debug, Parser)]
+pub struct EncryptOpts {
+    #[arg(short, long, help = "Input data")]
+    pub input: String,
+
+    #[arg(short, long, help = "Decrypt key")]
+    pub key: String,
+}
+
+#[derive(Debug, Parser)]
+pub struct DecryptOpts {
+    #[arg(short, long, help = "Input data")]
+    pub input: String,
+
+    #[arg(short, long, help = "Decrypt key")]
+    pub key: String,
+}
+
+impl CmdExector for EncryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let ret = process_text_encrypt(&self.input, &self.key)?;
+        println!("{}", ret);
+        Ok(())
+    }
+}
+
+impl CmdExector for DecryptOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let ret = process_text_decrypt(&self.input, &self.key)?;
+        println!("{}", ret);
+        Ok(())
     }
 }

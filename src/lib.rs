@@ -10,6 +10,8 @@ pub use process::process_decode;
 pub use process::process_encode;
 pub use process::process_genpass;
 pub use process::process_http_serve;
+pub use process::process_text_decrypt;
+pub use process::process_text_encrypt;
 pub use process::process_text_generate;
 pub use process::process_text_sign;
 pub use process::process_text_verify;
