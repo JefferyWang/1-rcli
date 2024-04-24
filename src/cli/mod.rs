@@ -2,6 +2,7 @@ mod base64;
 mod csv;
 mod genpass;
 mod http;
+mod jwt;
 mod text;
 
 use std::path::Path;
@@ -15,6 +16,7 @@ pub use self::base64::*;
 pub use self::csv::*;
 pub use self::genpass::*;
 pub use self::http::*;
+pub use self::jwt::*;
 pub use self::text::*;
 
 #[derive(Parser, Debug)]
@@ -41,6 +43,9 @@ pub enum SubCommand {
 
     #[command(subcommand, about = "HTTP server")]
     Http(HttpSubCommand),
+
+    #[command(subcommand, about = "sign a jwt or verify a jwt")]
+    Jwt(JwtSubCommand),
 }
 
 fn verify_file(filename: &str) -> Result<String, String> {
